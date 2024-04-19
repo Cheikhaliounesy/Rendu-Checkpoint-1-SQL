@@ -1,0 +1,131 @@
+CREATE DATABASE; 
+
+USE TABLE;
+
+CREATE TABLE CUSTOMER 
+(
+    customer_id INT PRIMARY KEY,
+    customer_name VARCHAR (80),
+    customer_tel VARCHAR (80)
+);
+
+
+CREATE TABLE PRODUCT 
+(
+    
+    product_id INT PRIMARY KEY, 
+    product_name VARCHAR (80),
+    category VARCHAR (80),
+    price DECIMAL (5.00)
+);
+
+
+CREATE TABLE ORDERS 
+(
+    customer_id INT,
+    product_id INT,
+    order_date DATE,
+    quantity INT,
+    total_amount DECIMAL (5.00),
+    FOREIGN KEY (customer_id) REFERENCES CUSTOMER (customer_id),
+    FOREIGN KEY (product_id) REFERENCES PRODUCT (product_id)
+);    
+    
+ALTER TABLE ORDERS ADD orders_id INT PRIMARY KEY;
+
+INSERT INTO CUSTOMER (customer_id,customer_name,customer_tel)
+     VALUES (1,'ASSATA','+221770000000'),(2,’MODOU','+221770000001’),(3,'ASSANE','+221770000002');
+     
+
+INSERT INTO PRODUCT (product_id,product_name,category,price)
+VALUES (10,’Overboard','Gadget',180),(20,’Laptop','Gadget',450),(30,’Airpods','Gadget',150),
+       (40,’Montre','Widget',100),(50,’Meteo','Widget',80),(60,’agenda','Widget',50),
+       (70,’Casse_oeuf','Doohickey',25),(80,’Crochet','Doohicket',40),(90,’knife','Doohickey',45);
+
+INSERT INTO ORDERS (customer_id,product_id,order_date,quantity,total_amount,orders_id)
+VALUES (1,10,'2024-01-01',5,900,1001),(1,20,'2024-01-01',3,1350,1002),(2,10,'2024-01-01',4,720,1003),(3,30,'2024-01-01',4,600,1004),(2,20,'2024-01-01',6,120,1005),(3,10,'2024-01-01',3,540,1006),(1,40,'2024-01-01',3,300,1007);
+
+SELECT CUSTOMER.customer_name AS CUSTOMER_WIDGET,
+       SUM(CASE WHEN PRODUCT.product_name = 'Widget' THEN ORDERS.quantity * PRODUCT.price ELSE 0 END) AS
+       TOTAL_AMOUNT_WIDGETS,
+       SUM(CASE WHEN PRODUCT.product_name = 'Gadget' THEN ORDERS.quantity * PRODUCT.price ELSE 0 END) AS 
+       TOTAL_AMOUNT_GADGETS
+FROM CUSTOMER
+JOIN ORDERS ON CUSTOMER.customer_id = ORDERS.customer_id
+JOIN PRODUCT ON ORDERS.product_id = PRODUCT.product_id
+WHERE PRODUCT.product_name IN ('Widget', 'Gadget')
+GROUP BY CUSTOMER.customer_id, CUSTOMER.customer_id
+HAVING COUNT(DISTINCT CASE WHEN PRODUCT.product_name = 'Widget' THEN ORDERS.product_id END) >= 1
+   AND COUNT(DISTINCT CASE WHEN PRODUCT.product_name = 'Gadget' THEN ORDERS.product_id END) >= 1;
+
+SELECT CUSTOMER.customer_name AS CUSTOMER_WIDGET,
+       SUM(CASE WHEN PRODUCT.product_name = 'Doohickey' THEN ORDERS.quantity * PRODUCT.price ELSE 0 END) AS
+       TOTAL_AMOUNT_DOOHICKEY
+FROM CUSTOMER
+JOIN ORDERS ON CUSTOMER.customer_id = ORDERS.customer_id
+JOIN PRODUCT ON ORDERS.product_id = PRODUCT.product_id
+WHERE PRODUCT.product_name IN ('Doohickey')
+GROUP BY CUSTOMER.customer_id, CUSTOMER.customer_id
+HAVING  COUNT(DISTINCT CASE WHEN PRODUCT.product_name = 'Doohickey' THEN ORDERS.product_id END) >= 1;
+
+SELECT 
+    customer.customer_name,
+    SUM(CASE WHEN product.category = 'widget' THEN quantity ELSE 0 END) AS total_widgets_ordered,
+    SUM(CASE WHEN product.category = 'gadget' THEN quantity ELSE 0 END) AS total_gadgets_ordered,
+    SUM(quantity * product.price) AS total_order_cost
+FROM 
+    CUSTOMER 
+INNER JOIN 
+    ORDERS orders ON customer.customer_id = orders.customer_id
+INNER JOIN 
+    PRODUCT product ON orders.product_id = product.product_id
+GROUP BY 
+    customer.customer_name;
+
+SELECT 
+    PRODUCT.product_name AS Nom_Produit, 
+    SUM(ORDERS.quantity) AS Quantite_Totale
+FROM 
+  PRODUCT
+JOIN 
+    ORDERS ON PRODUCT.product_id = ORDERS.product_id
+GROUP BY 
+  PRODUCT.product_name;
+
+
+SELECT 
+    c.nom_client AS NomClient,
+    COUNT(*) AS NombreDeCommandes
+FROM 
+    Clients c
+JOIN 
+    Commandes cmd ON c.id_client = cmd.id_client
+GROUP BY 
+    c.nom_client
+ORDER BY 
+    COUNT(*) DESC
+LIMIT 1;
+
+SELECT 
+    PRODUCT.product_name AS Nom_Produit, 
+    SUM(ORDERS.quantity) AS Quantite_Totale
+FROM 
+    PRODUCT
+JOIN 
+   ORDERS ON PRODUCT.product_id = ORDERS.product_id
+GROUP BY 
+    PRODUCT.product_name
+ORDER BY 
+    SUM(ORDERS.quantity) DESC;
+
+SELECT 
+    CUSTOMER.customer_name AS Nom_Client,
+    COUNT(DISTINCT DATE(ORDERS.order_date)) AS Nombre_Total_De_Jours_Commandes
+FROM 
+    CUSTOMER
+JOIN 
+    ORDERS ON CUSTOMER.customer_id = ORDERS.customer_id
+GROUP BY 
+   CUSTOMER.customer_name
+HAVING 
+    COUNT(DISTINCT DATE(ORDERS.order_date)) = 7;
